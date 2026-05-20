@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Раздел "Прикол"{% endblock %}
+
+{% block extra_css %}
+.fun-container {
+    text-align: center;
+}
+.upload-section {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    margin-bottom: 30px;
+}
+.image-area {
+    position: relative;
+    display: inline-block;
+    cursor: crosshair;
+    max-width: 100%;
+    overflow: hidden;
+}
+.image-area img {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: var(--radius-lg);
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+.splat {
+    position: absolute;
+    border-radius: 50% 45% 55% 50%;
+    background: radial-gradient(ellipse at 30% 30%, rgba(255,255,255,0.95), rgba(245,245,250,0.85));
+    box-shadow: 0 0 8px rgba(255,255,255,0.6), inset 0 0 8px rgba(255,255,255,0.5);
+    pointer-events: none;
+    animation: splatHit 0.3s ease-out forwards, splatFade 18s ease-out 0.3s forwards;
+}
+@keyframes splatHit {
+    0% {
+        transform: scale(0.1) rotate(0deg);
+    }
+    50% {
+        transform: scale(1.3) rotate(15deg);
+    }
+    100% {
+        transform: scale(1) rotate(-5deg);
+        border-radius: 55% 45% 50% 55%;
+    }
+}
+@keyframes splatFade {
+    0% {
+        opacity: 0.95;
+    }
+    80% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<h1>Раздел "Прикол" 📸</h1>
+
+<div class="fun-container">
+    <div class="card upload-section">
+        <h3>Загрузите фото</h3>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="file" name="image" class="form-control" accept="image/*" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Загрузить</button>
+        </form>
+    </div>
+    
+    {% if image %}
+    <div class="card">
+        <h3>Нажимайте на фото! 💥</h3>
+        <div class="image-area" id="imageArea">
+            <img src="{{ url_for('static', filename='uploads/' + image) }}" id="funImage" draggable="false">
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const imageArea = document.getElementById('imageArea');
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+
+function createSplat(x, y) {
+    const splat = document.createElement('div');
+    splat.className = 'splat';
+    
+    const size = 60 + Math.random() * 50;
+    splat.style.width = size + 'px';
+    splat.style.height = size + 'px';
+    
+    const offsetX = (Math.random() - 0.5) * 20;
+    const offsetY = (Math.random() - 0.5) * 20;
+    splat.style.left = (x - size/2 + offsetX) + 'px';
+    splat.style.top = (y - size/2 + offsetY) + 'px';
+    
+    imageArea.appendChild(splat);
+    
+    setTimeout(() => {
+        splat.remove();
+    }, 18000);
+}
+
+function createBurst(x, y) {
+    createSplat(x, y);
+    setTimeout(() => createSplat(x + 15, y + 10), 30);
+    setTimeout(() => createSplat(x - 10, y + 15), 60);
+    if (Math.random() > 0.5) {
+        setTimeout(() => createSplat(x + 5, y - 10), 90);
+    }
+}
+
+if (imageArea) {
+    imageArea.addEventListener('mousedown', function(e) {
+        isDrawing = true;
+        const rect = imageArea.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        createBurst(x, y);
+        lastX = x;
+        lastY = y;
+    });
+    
+    imageArea.addEventListener('mousemove', function(e) {
+        if (!isDrawing) return;
+        
+        const rect = imageArea.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+        
+        if (distance > 25) {
+            createSplat(x, y);
+            lastX = x;
+            lastY = y;
+        }
+    });
+    
+    document.addEventListener('mouseup', function() {
+        isDrawing = false;
+    });
+    
+    imageArea.addEventListener('touchstart', function(e) {
+        isDrawing = true;
+        const touch = e.touches[0];
+        const rect = imageArea.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        createBurst(x, y);
+        lastX = x;
+        lastY = y;
+    });
+    
+    imageArea.addEventListener('touchmove', function(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const rect = imageArea.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        
+        const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+        
+        if (distance > 25) {
+            createSplat(x, y);
+            lastX = x;
+            lastY = y;
+        }
+    });
+    
+    imageArea.addEventListener('touchend', function() {
+        isDrawing = false;
+    });
+}
+</script>
+{% endblock %}

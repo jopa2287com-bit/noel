@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель - Портал адаптации{% endblock %}
+
+{% block extra_css %}
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Админ-панель</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">&larr; На главную</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.users_count }}</div>
+        <div class="stat-label">Пользователей</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.courses_count }}</div>
+        <div class="stat-label">Курсов</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.lessons_count }}</div>
+        <div class="stat-label">Уроков</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.completed_lessons }}</div>
+        <div class="stat-label">Пройдено уроков</div>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" data-tab="tab-courses">Курсы</div>
+    <div class="tab" data-tab="tab-users">Пользователи</div>
+    <div class="tab" data-tab="tab-activity">Активность</div>
+</div>
+
+<div id="tab-courses" class="tab-content">
+    <div class="card">
+        <div class="card-header">
+            <h3>Управление курсами</h3>
+            <button class="btn btn-primary" data-modal="modal-add-course">+ Добавить курс</button>
+        </div>
+        
+        {% if courses %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Категория</th>
+                    <th>Инструктор</th>
+                    <th>Сложность</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('course', course_id=course.id) }}">{{ course.title }}</a>
+                    </td>
+                    <td>{{ course.category }}</td>
+                    <td>{{ course.instructor }}</td>
+                    <td>{{ course.difficulty }}</td>
+                    <td>
+                        <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-sm btn-primary">Уроки</a>
+                        <a href="{{ url_for('delete_course', course_id=course.id) }}" class="btn btn-sm btn-danger" data-delete>Удалить</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Нет курсов</p>
+        {% endif %}
+    </div>
+</div>
+
+<div id="tab-users" class="tab-content" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h3>Управление пользователями</h3>
+            <button class="btn btn-primary" data-modal="modal-add-user">+ Добавить пользователя</button>
+        </div>
+        
+        {% if users %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Логин</th>
+                    <th>ФИО</th>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th>Отдел</th>
+                    <th>Последний вход</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="badge badge-{{ 'admin' if user.role == 'admin' else 'user' }}">
+                            {{ user.role }}
+                        </span>
+                    </td>
+                    <td>{{ user.department }}</td>
+                    <td>{{ user.last_login or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Нет пользователей</p>
+        {% endif %}
+    </div>
+</div>
+
+<div id="tab-activity" class="tab-content" style="display: none;">
+    <div class="card">
+        <h3>Последняя активность</h3>
+        
+        {% if recent_activity %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Курс</th>
+                    <th>Урок</th>
+                    <th>Результат</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in recent_activity %}
+                <tr>
+                    <td>{{ activity.full_name }}</td>
+                    <td>{{ activity.course_title }}</td>
+                    <td>{{ activity.lesson_title }}</td>
+                    <td>{{ activity.score }}%</td>
+                    <td>{{ activity.completed_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>Нет активности</p>
+        {% endif %}
+    </div>
+</div>
+
+<div id="modal-add-course" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Добавить курс</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('add_course') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title">Название курса</label>
+                <input type="text" id="title" name="title" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="category">Категория</label>
+                <select id="category" name="category" class="form-control">
+                    <option value="Социальная работа">Социальная работа</option>
+                    <option value="Охрана труда">Охрана труда</option>
+                    <option value="Безопасность">Безопасность</option>
+                    <option value="Другое">Другое</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="instructor">Инструктор</label>
+                <input type="text" id="instructor" name="instructor" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="duration">Продолжительность</label>
+                <input type="text" id="duration" name="duration" class="form-control" placeholder="2 недели">
+            </div>
+            <div class="form-group">
+                <label for="difficulty">Сложность</label>
+                <select id="difficulty" name="difficulty" class="form-control">
+                    <option value="beginner">Начинающий</option>
+                    <option value="intermediate">Средний</option>
+                    <option value="advanced">Продвинутый</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="image">Обложка курса</label>
+                <input type="file" id="image" name="image" class="form-control" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-primary">Создать курс</button>
+        </form>
+    </div>
+</div>
+
+<div id="modal-add-user" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Добавить пользователя</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('add_user') }}">
+            <div class="form-group">
+                <label for="username">Логин</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="full_name">ФИО</label>
+                <input type="text" id="full_name" name="full_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="role">Роль</label>
+                <select id="role" name="role" class="form-control">
+                    <option value="user">Пользователь</option>
+                    <option value="admin">Администратор</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="position">Должность</label>
+                <input type="text" id="position" name="position" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="department">Отдел</label>
+                <input type="text" id="department" name="department" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Создать пользователя</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

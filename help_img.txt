@@ -1,0 +1,7 @@
+Пример для вставки изображения:
+
+<img src="/static/uploads/ВАШ_ФАЙЛ.jpg" style="max-width: 100%;">
+
+Или с размерами:
+
+<img src="/static/uploads/ВАШ_ФАЙЛ.jpg" width="500" height="300">

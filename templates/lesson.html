@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - Урок{% endblock %}
+
+{% block extra_css %}
+.lesson-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.lesson-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-top: 30px;
+    box-shadow: var(--shadow-sm);
+}
+.test-results {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    margin-top: 30px;
+    text-align: center;
+}
+.test-result-score {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+.test-result-label {
+    color: var(--gray-600);
+    margin-top: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="lesson-header">
+    <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-sm btn-secondary">&larr; К курсу</a>
+    <div>
+        <p style="color: var(--gray-600);">{{ course.title }}</p>
+        <h1>{{ lesson.title }}</h1>
+    </div>
+    <span class="badge badge-user">{{ lesson.duration }}</span>
+</div>
+
+{% if lesson.image %}
+<div style="text-align: center; margin-bottom: 20px;">
+    <img src="{{ url_for('static', filename='uploads/' + lesson.image) }}" style="max-width: 100%; max-height: 400px; border-radius: 8px;">
+</div>
+{% endif %}
+
+{% if lesson.video_url %}
+<div style="margin-bottom: 20px;">
+    <iframe src="{{ lesson.video_url.replace('watch?v=', 'embed/') }}" frameborder="0" allowfullscreen style="width: 100%; aspect-ratio: 16/9;"></iframe>
+</div>
+{% endif %}
+
+<div class="lesson-content">
+    {{ lesson.content|safe }}
+</div>
+
+{% if g.user and g.user.role == 'admin' %}
+<div style="margin-top: 20px; display: flex; gap: 10px;">
+    <a href="{{ url_for('edit_lesson', lesson_id=lesson.id) }}" class="btn btn-sm btn-secondary">✏️ Редактировать урок</a>
+    <button class="btn btn-sm btn-primary" data-modal="modal-add-test">+ Добавить тест</button>
+</div>
+{% endif %}
+
+{% if tests %}
+<form method="POST">
+    <div style="margin-top: 40px;">
+<h2 style="margin-bottom: 25px;">Тест к уроку</h2>
+        <p style="color: var(--gray-600); margin-bottom: 25px;">Ответьте на вопросы для закрепления материала. Для прохождения нужно набрать не менее 70%.</p>
+         
+        {% for test in tests %}
+        <div class="test-question">
+            {% if test.image %}
+            <img src="{{ url_for('static', filename='uploads/' + test.image) }}" style="max-width: 100%; max-height: 200px; margin-bottom: 15px; border-radius: 8px;">
+            {% endif %}
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Вопрос {{ loop.index }}: {{ test.question }}</h3>
+                {% if g.user and g.user.role == 'admin' %}
+                <a href="{{ url_for('edit_test', test_id=test.id) }}" class="btn btn-sm btn-secondary">✏️</a>
+                {% endif %}
+            </div>
+            <div class="test-options">
+                {% set options = test.options|parse_json_options %}
+                {% for option in options %}
+                <label>
+                    <input type="radio" name="answer_{{ test.id }}" value="{{ loop.index0 }}" required>
+                    <span>{{ option }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        
+        <button type="submit" class="btn btn-success btn-lg">Отправить ответы</button>
+    </div>
+</form>
+{% elif existing_progress and existing_progress.status == 'completed' %}
+<div class="test-results">
+    <h2>Тест пройден</h2>
+    <div class="test-result-score">{{ existing_progress.score }}%</div>
+    <div class="test-result-label">Ваш результат</div>
+    <p style="margin-top: 20px; color: var(--gray-600);">Попыток: {{ existing_progress.attempts }}</p>
+    <a href="{{ url_for('lesson', lesson_id=lesson.id) }}" class="btn btn-primary" style="margin-top: 20px;">Пройти заново</a>
+</div>
+{% else %}
+<div class="card" style="margin-top: 30px; text-align: center;">
+    <p style="color: var(--gray-600);">К этому уроку нет теста</p>
+    <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-primary" style="margin-top: 15px;">Вернуться к курсу</a>
+</div>
+{% endif %}
+
+<div class="lesson-nav">
+    <span>Изучите материал и пройдите тест для завершения урока</span>
+    <span class="badge {% if existing_progress and existing_progress.status == 'completed' %}badge-admin{% else %}badge-user{% endif %}">
+        {{ 'Урок пройден' if existing_progress and existing_progress.status == 'completed' else 'В процессе' }}
+    </span>
+</div>
+
+{% if g.user and g.user.role == 'admin' %}
+<div id="modal-add-test" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Добавить тест</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form method="POST" action="{{ url_for('add_test', lesson_id=lesson.id) }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="question">Вопрос</label>
+                <textarea id="question" name="question" class="form-control" rows="2" required placeholder="Введите текст вопроса"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Варианты ответов</label>
+                <input type="text" name="option1" class="form-control" style="margin-bottom: 8px;" placeholder="Вариант 1 (правильный)" required>
+                <input type="text" name="option2" class="form-control" style="margin-bottom: 8px;" placeholder="Вариант 2" required>
+                <input type="text" name="option3" class="form-control" style="margin-bottom: 8px;" placeholder="Вариант 3">
+                <input type="text" name="option4" class="form-control" placeholder="Вариант 4">
+                <p style="font-size: 0.85rem; color: var(--gray-600); margin-top: 5px;">Отметьте правильный ответ</p>
+            </div>
+            <div class="form-group">
+                <label for="correct_answer">Правильный ответ</label>
+                <select id="correct_answer" name="correct_answer" class="form-control">
+                    <option value="0">Вариант 1</option>
+                    <option value="1">Вариант 2</option>
+                    <option value="2">Вариант 3</option>
+                    <option value="3">Вариант 4</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="image">Изображение к вопросу</label>
+                <input type="file" id="image" name="image" class="form-control" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="explanation">Пояснение к ответу</label>
+                <textarea id="explanation" name="explanation" class="form-control" rows="2" placeholder="Объяснение, которое увидят после ответа"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="points">Баллы</label>
+                <input type="number" id="points" name="points" class="form-control" value="1" min="1">
+            </div>
+            <button type="submit" class="btn btn-primary">Добавить тест</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

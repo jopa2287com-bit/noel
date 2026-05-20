@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование курса{% endblock %}
+
+{% block content %}
+<h1>Редактирование курса</h1>
+
+<div class="card">
+    <form method="POST" action="{{ url_for('edit_course', course_id=course.id) }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="title">Название курса</label>
+            <input type="text" id="title" name="title" class="form-control" value="{{ course.title }}" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Описание</label>
+            <textarea id="description" name="description" class="form-control" rows="4">{{ course.description }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="category">Категория</label>
+            <select id="category" name="category" class="form-control">
+                <option value="Социальная работа" {% if course.category == 'Социальная работа' %}selected{% endif %}>Социальная работа</option>
+                <option value="Охрана труда" {% if course.category == 'Охрана труда' %}selected{% endif %}>Охрана труда</option>
+                <option value="Безопасность" {% if course.category == 'Безопасность' %}selected{% endif %}>Безопасность</option>
+                <option value="Другое" {% if course.category == 'Другое' %}selected{% endif %}>Другое</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="instructor">Инструктор</label>
+            <input type="text" id="instructor" name="instructor" class="form-control" value="{{ course.instructor or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="duration">Продолжительность</label>
+            <input type="text" id="duration" name="duration" class="form-control" value="{{ course.duration or '' }}">
+        </div>
+        <div class="form-group">
+            <label for="difficulty">Сложность</label>
+            <select id="difficulty" name="difficulty" class="form-control">
+                <option value="beginner" {% if course.difficulty == 'beginner' %}selected{% endif %}>Начинающий</option>
+                <option value="intermediate" {% if course.difficulty == 'intermediate' %}selected{% endif %}>Средний</option>
+                <option value="advanced" {% if course.difficulty == 'advanced' %}selected{% endif %}>Продвинутый</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="image">Обложка курса</label>
+            {% if course.image %}
+            <div style="margin-bottom: 10px;">
+                <img src="{{ url_for('static', filename='uploads/' + course.image) }}" style="max-width: 300px; border-radius: 8px;">
+            </div>
+            {% endif %}
+            <input type="file" id="image" name="image" class="form-control" accept="image/*">
+            {% if course.image %}
+            <p style="font-size: 0.85rem; color: var(--gray-600); margin-top: 5px;">Оставьте пустым, чтобы не менять</p>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

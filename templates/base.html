@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ГАУСО СО КЦСОН Артёмовский район{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    {% if session.get('user_id') %}
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('index') }}" class="logo">
+                    <div class="logo-icon">Ц</div>
+                    <span>Портал адаптации ГАУСО СО КЦСОН</span>
+                </a>
+                <nav>
+                    <a href="/" class="{{ 'active' if request.endpoint == 'index' else '' }}">Главная</a>
+                    <a href="{{ url_for('fun') }}" class="{{ 'active' if request.endpoint == 'fun' else '' }}">Прикол</a>
+                    {% if g.user and g.user.role == 'admin' %}
+                    <a href="{{ url_for('admin') }}" class="{{ 'active' if request.endpoint == 'admin' else '' }}">Админ-панель</a>
+                    {% endif %}
+                </nav>
+                <div class="user-menu">
+                    <a href="{{ url_for('profile') }}">
+                        <div class="user-avatar">{{ g.user.full_name[0] if g.user and g.user.full_name else 'U' }}</div>
+                        <span>{{ g.user.full_name if g.user and g.user.full_name else session.get('username', 'Пользователь') }}</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-secondary">Выход</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+    
+    <main>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    {% if session.get('user_id') %}
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 ГАУСО СО &laquo;Комплексный центр социального обслуживания&raquo; Артёмовского района</p>
+        </div>
+    </footer>
+    {% endif %}
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

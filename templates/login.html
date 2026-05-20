@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - ГАУСО СО КЦСОН Артёмовский район</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .login-logo h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        .login-logo .subtitle {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+        }
+        .login-logo .org-name {
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <div class="logo-icon" style="width: 60px; height: 60px; font-size: 2rem; margin: 0 auto 20px;">К</div>
+                <h1>Портал адаптации</h1>
+                <p class="subtitle">ГАУСО СО &laquo;КЦСОН&raquo;</p>
+                <p class="org-name">Артёмовского района</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" style="margin-bottom: 20px;">
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" id="username" name="username" class="form-control" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Войти</button>
+            </form>
+            
+            <div class="login-footer">
+                <p>Для доступа обратитесь к администратору</p>
+                <p style="margin-top: 10px; color: var(--gray-500);">Демо: admin / admin123</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

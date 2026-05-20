@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование теста{% endblock %}
+
+{% block content %}
+<h1>Редактирование теста</h1>
+
+<div class="card">
+    <form method="POST" action="{{ url_for('edit_test', test_id=test.id) }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="question">Вопрос</label>
+            <textarea id="question" name="question" class="form-control" rows="2" required>{{ test.question }}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Варианты ответов</label>
+            <input type="text" name="option1" class="form-control" style="margin-bottom: 8px;" value="{{ options[0] if options|length > 0 else '' }}" placeholder="Вариант 1 (правильный)" required>
+            <input type="text" name="option2" class="form-control" style="margin-bottom: 8px;" value="{{ options[1] if options|length > 1 else '' }}" placeholder="Вариант 2">
+            <input type="text" name="option3" class="form-control" style="margin-bottom: 8px;" value="{{ options[2] if options|length > 2 else '' }}" placeholder="Вариант 3">
+            <input type="text" name="option4" class="form-control" value="{{ options[3] if options|length > 3 else '' }}" placeholder="Вариант 4">
+        </div>
+        <div class="form-group">
+            <label for="correct_answer">Правильный ответ</label>
+            <select id="correct_answer" name="correct_answer" class="form-control">
+                <option value="0" {% if test.correct_answer == 0 %}selected{% endif %}>Вариант 1</option>
+                <option value="1" {% if test.correct_answer == 1 %}selected{% endif %}>Вариант 2</option>
+                <option value="2" {% if test.correct_answer == 2 %}selected{% endif %}>Вариант 3</option>
+                <option value="3" {% if test.correct_answer == 3 %}selected{% endif %}>Вариант 4</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="image">Изображение</label>
+            {% if test.image %}
+            <div style="margin-bottom: 10px;">
+                <img src="{{ url_for('static', filename='uploads/' + test.image) }}" style="max-width: 200px; border-radius: 8px;">
+            </div>
+            {% endif %}
+            <input type="file" id="image" name="image" class="form-control" accept="image/*">
+        </div>
+        <div class="form-group">
+            <label for="explanation">Пояснение к ответу</label>
+            <textarea id="explanation" name="explanation" class="form-control" rows="2">{{ test.explanation or '' }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="points">Баллы</label>
+            <input type="number" id="points" name="points" class="form-control" value="{{ test.points }}" min="1">
+        </div>
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a href="{{ url_for('lesson', lesson_id=test.lesson_id) }}" class="btn btn-secondary">Отмена</a>
+    </form>
+</div>
+{% endblock %}

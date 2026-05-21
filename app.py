@@ -562,4 +562,5 @@ if __name__ == '__main__':
     from database import init_db, seed_demo_data
     init_db()
     seed_demo_data()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)

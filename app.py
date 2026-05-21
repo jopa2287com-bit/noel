@@ -40,6 +40,12 @@ def migrate_db():
 
 migrate_db()
 
+from database import init_db
+try:
+    init_db()
+except Exception as e:
+    print(f"Warning: database initialization error: {e}")
+
 def parse_json_options(options_str):
     try:
         return json.loads(options_str)
@@ -559,8 +565,5 @@ def server_error(e):
     return render_template('base.html', content='<div class="error-page"><h1>500</h1><p>Ошибка сервера</p><a href="/">На главную</a></div>'), 500
 
 if __name__ == '__main__':
-    from database import init_db, seed_demo_data
-    init_db()
-    seed_demo_data()
     debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     app.run(debug=debug_mode, host='0.0.0.0', port=5000)

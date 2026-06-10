@@ -18,11 +18,18 @@
                     <div class="logo-icon">Ц</div>
                     <span>Портал адаптации ГАУСО СО КЦСОН</span>
                 </a>
-                <nav>
+                <button class="menu-toggle" id="menuToggle" aria-label="Меню" aria-expanded="false">☰</button>
+                <nav id="mobileNav">
                     <a href="/" class="{{ 'active' if request.endpoint == 'index' else '' }}">Главная</a>
+                    <a href="{{ url_for('fun') }}" class="{{ 'active' if request.endpoint == 'fun' else '' }}">Прикол</a>
                     {% if g.user and g.user.role == 'admin' %}
                     <a href="{{ url_for('admin') }}" class="{{ 'active' if request.endpoint == 'admin' else '' }}">Админ-панель</a>
                     {% endif %}
+                    <a href="{{ url_for('profile') }}" class="mobile-nav-user">
+                        <div class="user-avatar" style="width: 28px; height: 28px; font-size: 0.8rem; display: inline-flex;">{{ g.user.full_name[0] if g.user and g.user.full_name else 'U' }}</div>
+                        <span>{{ g.user.full_name if g.user and g.user.full_name else session.get('username', 'Пользователь') }}</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-secondary" style="margin: 5px 15px 0; text-align: center;">Выход</a>
                 </nav>
                 <div class="user-menu">
                     <a href="{{ url_for('profile') }}">

@@ -7,6 +7,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileNav = document.getElementById('mobileNav');
+    
+    if (menuToggle && mobileNav) {
+        menuToggle.addEventListener('click', function() {
+            const isOpen = mobileNav.classList.toggle('open');
+            menuToggle.setAttribute('aria-expanded', isOpen);
+            menuToggle.textContent = isOpen ? '✕' : '☰';
+        });
+
+        // Close menu when clicking a nav link
+        mobileNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function() {
+                mobileNav.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.textContent = '☰';
+            });
+        });
+
+        // Close menu on resize back to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                mobileNav.classList.remove('open');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.textContent = '☰';
+            }
+        });
+    }
+
     const modalButtons = document.querySelectorAll('[data-modal]');
     modalButtons.forEach(btn => {
         btn.addEventListener('click', function(e) {

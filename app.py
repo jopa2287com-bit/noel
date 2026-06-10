@@ -532,7 +532,21 @@ def add_user():
     conn.close()
     return redirect(url_for('admin'))
 
-@app.route('/uploads/')
+@app.route('/fun', methods=['GET', 'POST'])
+@login_required
+def fun():
+    image = None
+    
+    if request.method == 'POST':
+        file = request.files.get('image')
+        if file and file.filename and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            image = filename
+    
+    return render_template('fun.html', image=image)
+
+@app.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
